@@ -1,112 +1,115 @@
-class Lista : Listavel{
+package src.Lista_Estática.Circular
 
-    private val dados: Array<Any?>
-    private var ponteiroFim: Int
-    private var ponteiroInicio: Int
-    private var quantidade: Int
+class Lista(private val capacidade: Int): Listavel {
+    var dados: Array<Any?> = arrayOfNulls(capacidade)
+    private var ponteiroInicio = 0
+    private var ponteiroFim = -1
+    private var quantidade = 0
 
-    constructor(tamanho: Int){
-        dados = arrayOfNulls(tamanho)
-        ponteiroInicio = 0
-        ponteiroFim = -1
-        quantidade = 0
-    }
-    override fun inserir(posicao: Int, dado: Any?) {
-        if (!estaCheia()){
-            if (posicao >=0 && posicao <= quantidade){
-                val posicaoFisica = (ponteiroInicio + posicao) % dados.size
-                var ponteiroAux = ponteiroFim+1
-                for (i in quantidade-posicao .. 0){
-                    dados[(posicaoFisica+i+1)%dados.size] = dados[(posicaoFisica+i)%dados.size]
-                } 
-                dados[posicaoFisica] = dado
-                quantidade++
-                ponteiroFim = (ponteiroFim + 1) % dados.size
-            } else {
-                println("Posicao invalida")
-            }
-        } else {
-            println("Lista Cheia")
+    override fun inserirInicio(dado: Any?) {
+        if (estaCheia()) return println("Lista Cheia")
+        for (i in quantidade downTo 1){
+            dados[(ponteiroInicio+i) % capacidade] = dados[(ponteiroInicio+i-1) % capacidade]
         }
+        dados[ponteiroInicio] = dado
+        ponteiroFim = (ponteiroFim + 1) % capacidade
+        quantidade++
     }
-    override fun anexar(dado: Any?) {
-        if (!estaCheia()){
-            ponteiroFim = (ponteiroFim+1)%dados.size
-            dados[ponteiroFim] = dado
-            quantidade++
-        } else {
-            println("Lista Cheia")
-        }
+
+    override fun inserirFim(dado: Any?) {
+        if (estaCheia()) return println("Lista Cheia")
+        ponteiroFim = (ponteiroFim + 1) % capacidade
+        dados[ponteiroFim] = dado
+        quantidade++
     }
-    override fun selecionar(posicao: Int): Any? {
-        var aux: Any? = null
-        if (!estaVazia()){
-            if ((posicao >=0) && (posicao < quantidade)){
-                val posicaoFisica = (ponteiroInicio + posicao)%dados.size
-                aux = dados[posicaoFisica]
-            }
+
+    override fun inserirPosicao(posicao: Int, dado: Any?) {
+        if (estaCheia()) return println("Lista Cheia")
+        if (posicao < 0 || posicao > quantidade) return println("Posição Invalida")
+        val posicaoFisica = (ponteiroInicio + posicao) % capacidade
+        for (i in (quantidade-posicao) downTo 1){
+            dados[(posicaoFisica+i) % capacidade] = dados[(posicaoFisica+i-1) % capacidade]
         }
+        dados[posicaoFisica] = dado
+        ponteiroFim = (ponteiroFim + 1) % capacidade
+        quantidade++
+    }
+
+    override fun removerInicio(): Any? {
+        if (estaVazia()) return println("Lista Vazia")
+        var aux = dados[ponteiroInicio]
+        ponteiroInicio = (ponteiroInicio + 1) % capacidade
+        quantidade--
         return aux
     }
 
-    override fun selecionarTodos(): Array<Any?> {
-        var dadosAux: Array<Any?> = arrayOfNulls(quantidade)
-        if (!estaVazia()){
-            var ponteiroAux = ponteiroInicio
-            for (i in 0 until quantidade){
-                dadosAux[i] = dados[ponteiroAux % dados.size]
-                ponteiroAux++
-            }
-        } else {
-            println("Lista Vazia")
-        }
-        return dadosAux
+    override fun removerFim(): Any? {
+        if (estaVazia()) return println("Lista Vazia")
+        var aux = dados[ponteiroFim]
+        ponteiroFim--
+        if (ponteiroFim == -1)
+            ponteiroFim = capacidade-1
+        quantidade--
+        return aux
     }
 
-    override fun atualizar(posicao: Int, dado: Any?) {
-        if (!estaVazia()){
-            if ((posicao >=0) && (posicao < quantidade)){
-                val posicaoFisica = (ponteiroInicio +  posicao)%dados.size
-                dados[posicaoFisica] = dado
-            } else {
-                println("Posição Invalida")
-            }
-        } else {
-            println("Lista Vazia")
+    override fun removerPosicao(posicao: Int): Any? {
+        if (estaVazia()) return println("Lista Vazia")
+        if (posicao < 0 || posicao >= quantidade) return println("Posição Invalida")
+        val posicaoFisica = (ponteiroInicio + posicao) % capacidade
+        var aux = dados[posicaoFisica]
+        for (i in 0 until quantidade-posicao){
+            dados[(posicaoFisica+i) % capacidade] = dados[(posicaoFisica+i+1) % capacidade]
         }
+        ponteiroFim--
+        if (ponteiroFim == -1)
+            ponteiroFim = capacidade-1
+        quantidade--
+        return aux
     }
 
-    override fun apagar(posicao: Int): Any? {
-        var dadoAux: Any? = null
-        if (!estaVazia()) {
-            if (posicao >= 0 && posicao < quantidade) {
-                val posicaoFisica = (ponteiroInicio + posicao) % dados.size
-                dadoAux = dados[posicaoFisica]
-                for (i in 0 until quantidade-posicao){
-                    dados[posicaoFisica+i] = dados[(posicaoFisica+i+1)%dados.size]
-                }
-                ponteiroFim--
-                if (ponteiroFim == -1){
-                    ponteiroFim = dados.size-1
-                }
-                quantidade--
-            } else {
-                println("Indice Inválido!")
-            }
-        } else {
-            println("Lista Vazia!")
-        }
-        return dadoAux
-    }
-
-    override fun limpar(){
+    override fun limpar() {
         ponteiroInicio = 0
         ponteiroFim = -1
         quantidade = 0
     }
 
+    override fun espiarInicio(): Any? {
+        if (estaVazia()) return println("Lista Vazia")
+        return dados[ponteiroInicio]
+    }
+
+    override fun espiarFim(): Any? {
+        if (estaVazia()) return println("Lista Vazia")
+        return dados[ponteiroFim]
+    }
+
+    override fun espiarPosicao(posicao: Int): Any? {
+        if (estaVazia()) return println("Lista Vazia")
+        if (posicao < 0 || posicao >= quantidade) return println("Posição Invalida")
+        val posicaoFisica = (ponteiroInicio + posicao) % capacidade
+        return dados[posicaoFisica]
+    }
+
+    override fun atualizarInicio(dado: Any?) {
+        if (estaVazia()) return println("Lista Vazia")
+        dados[ponteiroInicio] = dado
+    }
+
+    override fun atualizarFim(dado: Any?) {
+        if (estaVazia()) return println("Lista Vazia")
+        dados[ponteiroFim] = dado
+    }
+
+    override fun atualizarPosicao(posicao: Int, dado: Any?) {
+        if (estaVazia()) return println("Lista Vazia")
+        if (posicao < 0 || posicao >= quantidade) return println("Posição Invalida")
+        val posicaoFisica = (ponteiroInicio + posicao) % capacidade
+        dados[posicaoFisica] = dado
+    }
+
     override fun estaCheia(): Boolean {
-        return (quantidade == dados.size)
+        return (quantidade == capacidade)
     }
 
     override fun estaVazia(): Boolean {
@@ -117,12 +120,11 @@ class Lista : Listavel{
         var retorno = "["
         var ponteiroAux = ponteiroInicio
         for (i in 0 until quantidade){
-            if (i == quantidade-1)
-                retorno += "${dados[ponteiroAux % dados.size]}"
-            else
-                retorno += "${dados[ponteiroAux % dados.size]},"
-
-            ponteiroAux++
+            if (i == quantidade-1){
+                 retorno += "${dados[(ponteiroAux+i) % capacidade]}"
+            } else {
+                retorno += "${dados[(ponteiroAux+i) % capacidade]},"
+            }
         }
         return "$retorno]"
     }
